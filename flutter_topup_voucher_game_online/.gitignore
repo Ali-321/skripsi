@@ -45,4 +45,4 @@ app.*.map.json
 /android/app/release
 
 # Secrets or local config
-lib/services/api_service.dart
+.env

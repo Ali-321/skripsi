@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_topup_voucher_game_online/pages/cart_details.dart';
 
 import 'package:flutter_topup_voucher_game_online/pages/home_screen.dart';
@@ -16,7 +17,8 @@ import 'Providers/favorite_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/product_provider.dart';
 
-void main() async {
+Future<void> main() async {
+  await dotenv.load(fileName: ".env");
   runApp(
     MultiProvider(
       providers: [
