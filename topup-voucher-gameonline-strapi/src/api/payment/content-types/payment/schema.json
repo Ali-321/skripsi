@@ -1,0 +1,50 @@
+{
+  "kind": "collectionType",
+  "collectionName": "payments",
+  "info": {
+    "singularName": "payment",
+    "pluralName": "payments",
+    "displayName": "payment",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "payment_status": {
+      "type": "enumeration",
+      "enum": [
+        "Pending",
+        "Success",
+        "Failed",
+        "Refunded"
+      ]
+    },
+    "amount": {
+      "type": "decimal"
+    },
+    "payment_date": {
+      "type": "datetime"
+    },
+    "transaction": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::transaction.transaction",
+      "mappedBy": "payment"
+    },
+    "payment_histories": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::payment-history.payment-history",
+      "mappedBy": "payment"
+    },
+    "payment_method": {
+      "type": "string"
+    },
+    "order_id": {
+      "type": "string",
+      "unique": true
+    }
+  }
+}

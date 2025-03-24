@@ -1,0 +1,40 @@
+{
+  "kind": "collectionType",
+  "collectionName": "category_products",
+  "info": {
+    "singularName": "category-product",
+    "pluralName": "category-products",
+    "displayName": "category_product",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "category_product_name": {
+      "type": "string",
+      "pluginOptions": {}
+    },
+    "category_image_url": {
+      "type": "string",
+      "pluginOptions": {}
+    },
+    "note": {
+      "type": "text",
+      "pluginOptions": {}
+    },
+    "game": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::game.game",
+      "inversedBy": "category_products"
+    },
+    "products": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::product.product",
+      "mappedBy": "category_product"
+    }
+  }
+}

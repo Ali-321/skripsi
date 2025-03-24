@@ -1,0 +1,43 @@
+{
+  "kind": "collectionType",
+  "collectionName": "payment_histories",
+  "info": {
+    "singularName": "payment-history",
+    "pluralName": "payment-histories",
+    "displayName": "payment_history",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "previous_status": {
+      "type": "enumeration",
+      "enum": [
+        "Pending",
+        "Success",
+        "Failed",
+        "Refunded"
+      ]
+    },
+    "new_status": {
+      "type": "enumeration",
+      "enum": [
+        "Pending",
+        "Success",
+        "Failed",
+        "Refunded"
+      ]
+    },
+    "payment": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::payment.payment",
+      "inversedBy": "payment_histories"
+    },
+    "change_at": {
+      "type": "datetime"
+    }
+  }
+}
