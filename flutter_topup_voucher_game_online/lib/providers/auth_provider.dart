@@ -78,7 +78,7 @@ class AuthProvider extends ChangeNotifier {
 
     _token = await localData.getToken();
 
-    if (_token != null) {
+    if (_token != null && _token != "") {
       _isAuthenticated = true;
       await fetchUserData(); // panggil Api untuk mendapatkan data user
     } else {

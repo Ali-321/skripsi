@@ -17,7 +17,7 @@ class ProductProvider with ChangeNotifier {
   Future<List<Product>> fetchProducts(int idCategoryProduct) async {
     final token = await _localData.getToken();
     try {
-      _products = await _apiService.fetchProducts(token, idCategoryProduct);
+      _products = await _apiService.fetchProducts(token??"", idCategoryProduct);
       return _products;
     } catch (e) {
       throw Exception("Gagal memuat data: $e");

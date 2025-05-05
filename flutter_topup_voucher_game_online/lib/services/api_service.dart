@@ -1,10 +1,13 @@
 import 'dart:convert';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_topup_voucher_game_online/models/account.dart';
 import 'package:flutter_topup_voucher_game_online/models/auth/login_response.dart';
 import 'package:flutter_topup_voucher_game_online/models/category_product.dart';
 import 'package:flutter_topup_voucher_game_online/models/game.dart';
 import 'package:flutter_topup_voucher_game_online/models/product.dart';
+import 'package:flutter_topup_voucher_game_online/models/report.dart';
+import 'package:flutter_topup_voucher_game_online/models/transaction.dart';
 import 'package:flutter_topup_voucher_game_online/models/user.dart';
 import 'package:http/http.dart' as http;
 
@@ -147,5 +150,220 @@ class ApiService {
         "Failed to fetch category product data: ${response.statusCode} - ${response.body}",
       );
     }
+  }
+
+  Future<List<Account>> fetchAccounts(String token, int user) async {
+    final response = await http.get(
+      Uri.parse(
+        '$baseUrl/account-games?filters[user][id][\$eq]=$user&&populate=game',
+      ),
+      headers: {"Authorization": "Bearer $token"},
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body)['data'];
+      return data.map((e) => Account.fromJson(e)).toList();
+    } else {
+      throw Exception('Gagal memuat akun game dari Strapi');
+    }
+  }
+
+  Future<void> addAccount(
+    Account account,
+    String userIdStrapi,
+    String gameIdStrapi,
+    String token,
+  ) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/account-games'),
+      headers: {
+        'Content-Type': 'application/json',
+        "Authorization": "Bearer $token",
+      },
+
+      body: json.encode(
+        account.toJson(userIdStrapi: userIdStrapi, gameIdStrapi: gameIdStrapi),
+      ),
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Gagal menambahkan akun game');
+    }
+  }
+
+  Future<void> updateAccount(
+    String accountId,
+    Account account,
+    String gameIdStrapi,
+    String token,
+  ) async {
+    final response = await http.put(
+      Uri.parse(
+        '$baseUrl/account-games/account-games?filters[id][\$eq]=$accountId',
+      ),
+      headers: {
+        'Content-Type': 'application/json',
+        "Authorization": "Bearer $token",
+      },
+      body: json.encode(account.toUpdateJson(gameIdStrapi: gameIdStrapi)),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Gagal mengupdate akun game');
+    }
+  }
+
+  Future<void> deleteAccount(String documentId, String token) async {
+    const targetTable = "account-game";
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/delete-requests'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        "data": {"targetTable": targetTable, "targetDocumentId": documentId},
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Gagal menghapus akun. Status code: ${response.statusCode}',
+      );
+    }
+  }
+
+  Future<Map<String, dynamic>> createTransaction({
+    required Transaction transaction,
+    required String token,
+  }) async {
+    final uri = Uri.parse('$baseUrl/transactions');
+
+    final body = jsonEncode(transaction.toJson());
+
+    final response = await http.post(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: body,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Gagal membuat transaksi: ${response.body}');
+    }
+
+    return jsonDecode(response.body);
+  }
+
+  //fetch Transaction
+  Future<List<Transaction>> fetchTransactionsWithPayments({
+    required String token,
+    required int userId,
+  }) async {
+    final transactionUrl =
+        '$baseUrl/transactions?filters[account_games][user][id][\$eq]=$userId&populate[0]=transaction_products.product.category_product.game';
+
+    print("🔍 Fetching transactions for user: $userId");
+
+    final trxResponse = await http.get(
+      Uri.parse(transactionUrl),
+      headers: {"Authorization": "Bearer $token"},
+    );
+
+    print("📥 Transaction response status: ${trxResponse.statusCode}");
+
+    if (trxResponse.statusCode != 200) {
+      throw Exception(
+        'Failed to fetch transactions: ${trxResponse.statusCode}',
+      );
+    }
+
+    final List<dynamic> trxData = jsonDecode(trxResponse.body)['data'];
+    print("📊 Total transactions fetched: ${trxData.length}");
+
+    List<Transaction> transactions = [];
+
+    for (var trx in trxData) {
+      final trxId = trx['id'];
+      Map<String, dynamic>? paymentData;
+
+      print("🔄 Fetching payment for transaction ID: $trxId");
+
+      try {
+        final paymentRes = await http.get(
+          Uri.parse('$baseUrl/payment-by-transaction/$trxId'),
+          headers: {"Authorization": "Bearer $token"},
+        );
+
+        print(
+          "🔍 Payment response status for trx $trxId: ${paymentRes.statusCode}",
+        );
+
+        if (paymentRes.statusCode == 200) {
+          paymentData = jsonDecode(paymentRes.body);
+          print("✅ Payment data for trx $trxId: $paymentData");
+        } else {
+          print(
+            "⚠️ Payment fetch failed for trx $trxId. Defaulting to dummy data.",
+          );
+          paymentData = {
+            'id': 0,
+            'order_id': '-',
+            'amount': 0,
+            'payment_status': 'Pending',
+          };
+        }
+      } catch (e) {
+        print("❌ Exception while fetching payment for trx \$trxId: \$e");
+        paymentData = {
+          'id': 0,
+          'order_id': '-',
+          'amount': 0,
+          'payment_status': 'Pending',
+        };
+      }
+
+      try {
+        final transaction = Transaction.fromJson(trx, paymentData!);
+        transactions.add(transaction);
+        print("🟢 Transaction added for trx $trxId");
+      } catch (e) {
+        print("❌ Error parsing transaction for trx $trxId: $e");
+      }
+    }
+
+    print("✅ Total processed transactions: ${transactions.length}");
+
+    return transactions;
+  }
+
+  //post report
+
+  Future<void> createReport({
+    required Report report,
+    required String token,
+    required int userId,
+  }) async {
+    final uri = Uri.parse('$baseUrl/reports');
+
+    final body = jsonEncode(report.toJson(userId));
+
+    final response = await http.post(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: body,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Gagal membuat report: ${response.body}');
+    }
+
+    return jsonDecode(response.body);
   }
 }

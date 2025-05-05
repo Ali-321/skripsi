@@ -15,7 +15,11 @@ class GameProvider extends ChangeNotifier {
   List<Product> _products = [];
   List<CategoryProduct> _categoryProducts = [];
   List<Game> _games = [];
+  String _gameName = '';
+  String _gameId = '';
 
+  String get gameName => _gameName;
+  String get gameId => _gameId;
   List<Game> get games => _games;
   List<Product> get products => _products;
   List<CategoryProduct> get categoryProducts => _categoryProducts;
@@ -23,7 +27,12 @@ class GameProvider extends ChangeNotifier {
 
   Future<void> fetchGame() async {
     final token = await localData.getToken();
-    _games = await apiService.fetchGameData(token);
+    _games = await apiService.fetchGameData(token??"");
+    notifyListeners();
+  }
+
+  void setGameName(String name) {
+    _gameName = name;
     notifyListeners();
   }
 
@@ -35,6 +44,8 @@ class GameProvider extends ChangeNotifier {
           () => Game(id: 0, name: "null", image: "null", categoryProducts: []),
     );
     _categoryProducts = game.categoryProducts;
+    _gameName = game.name;
+    _gameId = game.id.toString();
 
     notifyListeners();
   }
@@ -66,6 +77,4 @@ class GameProvider extends ChangeNotifier {
     _products = [];
     notifyListeners();
   }
-
-
 }

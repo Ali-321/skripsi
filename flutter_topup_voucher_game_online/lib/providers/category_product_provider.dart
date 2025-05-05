@@ -16,7 +16,7 @@ class CategoryProductProvider extends ChangeNotifier {
   Future<List<CategoryProduct>> fetchCategoryProduct(int idGame) async {
     final token = await _localData.getToken();
 
-    _categoryProduct = await _apiService.fetchCategoryProduct(token, idGame);
+    _categoryProduct = await _apiService.fetchCategoryProduct(token??"", idGame);
 
     return _categoryProduct;
   }

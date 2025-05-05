@@ -6,10 +6,11 @@ class LocalData {
     await prefs.setString('token', token!);
   }
 
-  Future<String> getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('token')!;
-  }
+  Future<String?> getToken() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString('token'); // Akan mengembalikan null jika tidak ada
+}
+
 
   Future<void> removeToken() async {
     final prefs = await SharedPreferences.getInstance();

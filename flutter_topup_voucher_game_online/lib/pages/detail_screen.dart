@@ -1,17 +1,15 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_topup_voucher_game_online/models/product.dart';
+import 'package:flutter_topup_voucher_game_online/providers/account_provider.dart';
+import 'package:flutter_topup_voucher_game_online/providers/auth_provider.dart';
 import 'package:flutter_topup_voucher_game_online/providers/game_provider.dart';
-
+import 'package:flutter_topup_voucher_game_online/widgets/cart_icon_with_badge.dart';
 import 'package:flutter_topup_voucher_game_online/widgets/product_category_list.dart';
 import 'package:get/get.dart';
+
 import 'package:provider/provider.dart';
-
+import '../models/account.dart';
 import '../widgets/detail_screen/item_card.dart';
-import 'cart_details.dart';
-
-//import 'package:flutter_application_ecommerce/widgets/detail_screen/item_card.dart';
 
 class DetailScreen extends StatefulWidget {
   const DetailScreen({super.key});
@@ -21,244 +19,256 @@ class DetailScreen extends StatefulWidget {
 }
 
 class _DetailScreenState extends State<DetailScreen> {
-  final TextEditingController userIdText = TextEditingController();
-  final TextEditingController serverIdText = TextEditingController();
-  String userid = "";
-  String serverid = "";
-  String nameProduct = "";
-  int price = 0;
-  final int quantity = 1;
-
-  double getWidth() {
-    FlutterView view =
-        PlatformDispatcher
-            .instance
-            .views
-            .first; // untuk mendapatkan info nilai view layar
-    double physicalWidth = view.physicalSize.width;
-    double devicePixelRatio = view.devicePixelRatio;
-    return physicalWidth / devicePixelRatio;
-  }
+  Account? selectedAccount;
 
   @override
   void initState() {
     super.initState();
+    _loadLastAccount();
+  }
+
+  double getWidth() {
+    FlutterView view = PlatformDispatcher.instance.views.first;
+    return view.physicalSize.width / view.devicePixelRatio;
+  }
+
+  void _loadLastAccount() {
+    final account = context.read<AccountProvider>().getActiveAccount(
+      context.read<GameProvider>().gameName,
+    );
+    if (account != null) {
+      selectedAccount = account;
+    }
+  }
+
+  void _showAccountSelectionDialog(List<Account> accounts) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return SimpleDialog(
+          title: const Text('Pilih Akun Game'),
+          children:
+              accounts.map((account) {
+                return ListTile(
+                  title: Text(
+                    'ID: ${account.userId} | Server: ${account.serverId}',
+                  ),
+                  leading: Radio<String>(
+                    value: account.accountId.toString(),
+                    groupValue: selectedAccount?.accountId.toString(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedAccount = account;
+                      });
+                      context.read<AccountProvider>().setActiveAccount(account);
+                      Navigator.pop(context); // Tutup dialog setelah pilih
+                    },
+                  ),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () async {
+                      await context.read<AccountProvider>().deleteAccount(
+                        documentId: account.documentId,
+                      );
+
+                      if (!mounted) return; // Proteksi context
+
+                      if (selectedAccount?.accountId == account.accountId) {
+                        setState(() {
+                          selectedAccount = null;
+                        });
+                      }
+                      if (context.mounted) {
+                        Navigator.pop(context); // Tutup dialog setelah hapus
+                      }
+                    },
+                  ),
+                );
+              }).toList(),
+        );
+      },
+    );
+  }
+
+  void _showAddAccountDialog() {
+    final TextEditingController idController = TextEditingController();
+    final TextEditingController serverController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Tambah Akun Game'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: idController,
+                decoration: const InputDecoration(labelText: 'Masukkan ID'),
+              ),
+              TextField(
+                controller: serverController,
+                decoration: const InputDecoration(
+                  labelText: 'Masukkan Server ID',
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final uid = idController.text.trim();
+                final sid = serverController.text.trim();
+                final gameName = context.read<GameProvider>().gameName;
+                final userIdStrapi = context.read<AuthProvider>().user?.id;
+                final gameIdStrapi = context.read<GameProvider>().gameId;
+
+                if (uid.isNotEmpty && sid.isNotEmpty && userIdStrapi != null) {
+                  final newAccount = Account(
+                    accountId: 0,
+                    documentId: "",
+                    userId: uid,
+                    serverId: sid,
+                    gameName: gameName,
+                  );
+
+                  await context.read<AccountProvider>().addAccount(
+                    account: newAccount,
+                    userIdStrapi: userIdStrapi.toString(),
+                    gameIdStrapi: gameIdStrapi,
+                  );
+
+                  if (context.mounted) {
+                    Navigator.of(context).pop(); // Tutup dialog
+                  }
+                }
+              },
+              child: const Text('Simpan'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Detail'),
-        centerTitle: true,
-        leading: IconButton(
-          onPressed: () {
-            context.read<GameProvider>().removeProduct();
-            Get.back();
-          },
-          icon: Icon(Icons.arrow_back),
-        ),
-        actions: <Widget>[
-          Padding(
-            padding: EdgeInsets.all(20.0),
-            child: IconButton(
+    final accountProvider = context.watch<AccountProvider>();
+    final gameName = context.read<GameProvider>().gameName;
+    final accounts =
+        accountProvider.accounts
+            .where((acc) => acc.gameName == gameName)
+            .toList();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (accountProvider.errorMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(accountProvider.errorMessage!),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+        accountProvider.clear();
+      }
+    });
+
+    return Stack(
+      children: [
+        Scaffold(
+          appBar: AppBar(
+            title: const Text('Detail'),
+            centerTitle: true,
+            leading: IconButton(
               onPressed: () {
-                Get.to(CartDetails());
+                context.read<GameProvider>().removeProduct();
+                Get.back();
               },
-              icon: Icon(Icons.add_shopping_cart, color: Colors.greenAccent),
+              icon: const Icon(Icons.arrow_back),
             ),
+            actions: const [CartIconWithBadge()],
           ),
-        ],
-      ),
-
-      body: Column(
-        children: [
-          const SizedBox(height: 36),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.start,
+          body: Column(
             children: [
+              const SizedBox(height: 20),
+
+              // Tombol pilih akun dan tambah akun
               Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: SizedBox(
-                  width: getWidth(),
-                  child: TextField(
-                    controller: userIdText,
-                    autocorrect: true,
-                    autofocus: false,
-                    enableSuggestions: true,
-                    enableInteractiveSelection: true,
-                    decoration: const InputDecoration(hintText: "Masukan ID"),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: SizedBox(
-                  width: getWidth(),
-                  child: TextField(
-                    controller: serverIdText,
-                    autocorrect: true,
-                    autofocus: false,
-                    enableSuggestions: true,
-                    enableInteractiveSelection: true,
-                    decoration: const InputDecoration(
-                      hintText: "Masukan Server ID",
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => _showAccountSelectionDialog(accounts),
+                        child: const Text('Pilih Akun Game'),
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 10),
+                    ElevatedButton(
+                      onPressed: _showAddAccountDialog,
+                      child: const Icon(Icons.add),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-          const ProductCategoryList(),
-          Expanded(
-            child: Consumer<GameProvider>(
-              builder: (context, provider, child) {
-                if (provider.products.isEmpty) {
-                  return const Center(
-                    child: Text("Pilih Produk Category Category"),
-                  ); // ✅ Loading state
-                }
 
-                final List<Product> products = provider.products;
-                products.sort(
-                  (a, b) => a.price.compareTo(b.price),
-                ); // ✅ Urutkan berdasarkan harga
+              const SizedBox(height: 10),
 
-                return GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    childAspectRatio: (60 / 100),
-                    crossAxisSpacing: 5,
-                    mainAxisSpacing: 5,
+              // Akun yang terpilih
+              if (selectedAccount != null)
+                Card(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
                   ),
-                  itemCount: products.length,
-                  scrollDirection: Axis.vertical,
-                  itemBuilder: (context, index) {
-                    final product = products[index];
+                  child: ListTile(
+                    leading: const Icon(Icons.account_circle, size: 36),
+                    title: Text('ID: ${selectedAccount!.userId}'),
+                    subtitle: Text('Server: ${selectedAccount!.serverId}'),
+                  ),
+                ),
 
-                    return GestureDetector(
-                      onTap: () {
-                        // ✅ Ambil data yang diperlukan
-                        final userId = userIdText.text;
-                        final serverId = serverIdText.text;
-                        final nameProduct = product.name;
-                        final price = product.price;
+              const ProductCategoryList(),
 
-                        showModalBottomSheet(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return SizedBox(
-                              height: 400,
-                              child: Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
-                                children: [
-                                  Text("User ID: $userId"),
-                                  Text("Server ID: $serverId"),
-                                  Text("Price: Rp. $price"),
-                                  Text("Category: $nameProduct"),
-
-                                  // ✅ Tombol Pembelian
-                                  Center(
-                                    child: ElevatedButton(
-                                      onPressed: () async {},
-                                      child: const Text('Buy'),
-                                    ),
-                                  ),
-
-                                  // ✅ Tombol Tutup
-                                  Center(
-                                    child: ElevatedButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                      child: const Text('Close'),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
+              Expanded(
+                child: Consumer<GameProvider>(
+                  builder: (context, provider, child) {
+                    if (provider.products.isEmpty) {
+                      return const Center(child: Text("Pilih Produk Category"));
+                    }
+                    final products =
+                        provider.products
+                          ..sort((a, b) => a.price.compareTo(b.price));
+                    return GridView.builder(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            childAspectRatio: 0.6,
+                            crossAxisSpacing: 5,
+                            mainAxisSpacing: 5,
+                          ),
+                      itemCount: products.length,
+                      itemBuilder: (context, index) {
+                        final product = products[index];
+                        return GestureDetector(
+                          onTap: () {},
+                          child: ItemCard(product: product),
                         );
                       },
-                      child: ItemCard(
-                        product: product,
-                      ), // ✅ Kirim data produk ke ItemCard
                     );
                   },
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-      /*  bottomSheet: BottomAppBar(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          alignment: Alignment.center,
-          width: double.infinity,
-          height: MediaQuery.of(context).size.height / 25,
-          decoration: const BoxDecoration(
-            color: Color.fromARGB(255, 95, 95, 91),
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Rp test',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
                 ),
               ),
-              ElevatedButton.icon(
-                onPressed: () {
-                  //   provider.toggleProduct(p);
-                },
-                icon: const Icon(Icons.send),
-                label: const Text('Add to Cart'),
-                style: const ButtonStyle(
-                    foregroundColor:
-                        MaterialStatePropertyAll(Colors.greenAccent),
-                    backgroundColor: MaterialStatePropertyAll(Colors.black12)),
-              )
             ],
           ),
         ),
-      ),*/
-    );
-  }
 
-  /*
-  _buildProductCategory({required String image, required String name}) {
-    return GestureDetector(
-      onTap: () => () {},
-      child: Container(
-        width: 100,
-        height: 100,
-        margin: const EdgeInsets.only(top: 10, right: 10),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-            color: isSelected == name ? Colors.white : Colors.greenAccent,
-            borderRadius: BorderRadius.circular(8)),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            Image.asset(image, fit: BoxFit.contain),
-            Text(
-              name,
-              style: const TextStyle(
-                  color: Colors.black, fontWeight: FontWeight.w600),
-              textAlign: TextAlign.center,
-            )
-          ],
-        ),
-      ),
+        if (accountProvider.isLoading)
+          const Center(child: CircularProgressIndicator()),
+      ],
     );
   }
-  */
 }

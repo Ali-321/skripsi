@@ -1,58 +1,59 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_topup_voucher_game_online/models/game.dart';
 
-class GameCard extends StatefulWidget {
+class GameCard extends StatelessWidget {
   final Game game;
   const GameCard({super.key, required this.game});
 
   @override
-  State<GameCard> createState() => _ProductCardState();
-}
-
-class _ProductCardState extends State<GameCard> {
-  bool isSelected = false;
-  @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
-      width:
-          MediaQuery.of(
-            context,
-          ).copyWith(textScaler: const TextScaler.linear(1.0)).size.width /
-          2,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8.0),
-        color: Colors.grey,
+        borderRadius: BorderRadius.circular(12.0),
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        boxShadow: [
+          if (!isDark)
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.2),
+              blurRadius: 6,
+              offset: const Offset(0, 4),
+            ),
+        ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          /* Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              GestureDetector(
-                onTap: () => provider.toggleFavorite(widget.product),
-                child: Icon(
-                  provider.isExist(widget.product)
-                      ? Icons.favorite
-                      : Icons.favorite_border_outlined,
-                  color: Colors.red,
-                ),
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+            child: AspectRatio(
+              aspectRatio: 1.5,
+              child: Image.network(
+                game.image,
+                fit: BoxFit.cover,
+                errorBuilder:
+                    (context, error, stackTrace) => Container(
+                      color: Colors.grey[800],
+                      child: const Center(
+                        child: Icon(Icons.broken_image, color: Colors.red),
+                      ),
+                    ),
               ),
-            ],
-          ),*/
-          SizedBox(
-            height: 130,
-            child: Image.network(
-              widget.game.image.toString(),
-              fit: BoxFit.cover,
             ),
           ),
-          const SizedBox(height: 10),
-          Text(
-            widget.game.name.toString(),
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+            child: Text(
+              game.name,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

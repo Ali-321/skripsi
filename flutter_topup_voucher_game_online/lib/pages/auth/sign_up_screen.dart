@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 
@@ -36,95 +35,111 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF1E1E2C),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              "Sign Up",
-              style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 30),
-            FormContainerWidget(
-              controller: _usernameController,
-              hintText: "Name",
-              isPasswordField: false,
-            ),
-            const SizedBox(height: 30),
-            FormContainerWidget(
-              controller: _emailController,
-              hintText: "Email",
-              isPasswordField: false,
-            ),
-            const SizedBox(height: 30),
-            FormContainerWidget(
-              controller: _phoneController,
-              hintText: "Phone",
-              isPasswordField: false,
-            ),
-            const SizedBox(height: 30),
-            FormContainerWidget(
-              controller: _passwordController,
-              hintText: "Password",
-              isPasswordField: true,
-            ),
-            const SizedBox(height: 30),
-            SizedBox(
-              child: ElevatedButton(
-                onPressed: _signUp,
-                child:
-                    _isSigningUp
-                        ? const CircularProgressIndicator(color: Colors.indigo)
-                        : const Text('Sign Up'),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            children: [
+              const Text(
+                "Sign Up",
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  "Already have an account? ",
-                  style: TextStyle(color: Colors.blue),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    Get.to(() => const LoginScreen());
-                  },
-                  child: const Text(
-                    "Login",
-                    style: TextStyle(color: Colors.red),
+              const SizedBox(height: 30),
+              FormContainerWidget(
+                controller: _usernameController,
+                hintText: "Name",
+                isPasswordField: false,
+              ),
+              const SizedBox(height: 20),
+              FormContainerWidget(
+                controller: _emailController,
+                hintText: "Email",
+                isPasswordField: false,
+              ),
+              const SizedBox(height: 20),
+              FormContainerWidget(
+                controller: _phoneController,
+                hintText: "Phone",
+                isPasswordField: false,
+              ),
+              const SizedBox(height: 20),
+              FormContainerWidget(
+                controller: _passwordController,
+                hintText: "Password",
+                isPasswordField: true,
+              ),
+              const SizedBox(height: 30),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurple,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
+                  onPressed: _signUp,
+                  child:
+                      _isSigningUp
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text(
+                            'Sign Up',
+                            style: TextStyle(fontSize: 16),
+                          ),
                 ),
-              ],
-            ),
-          ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    "Already have an account? ",
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Get.to(() => const LoginScreen());
+                    },
+                    child: const Text(
+                      "Login",
+                      style: TextStyle(
+                        color: Colors.deepOrange,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
   void _signUp() async {
-    setState(() {
-      _isSigningUp = true;
-    });
+    setState(() => _isSigningUp = true);
 
-    String username = _usernameController.text;
-    String email = _emailController.text;
+    String username = _usernameController.text.trim();
+    String email = _emailController.text.trim();
     String password = _passwordController.text;
-    String phone = _phoneController.text;
+    String phone = _phoneController.text.trim();
 
     final response = await Provider.of<AuthProvider>(
       context,
       listen: false,
     ).register(username, email, phone, password);
-    setState(() {
-      _isSigningUp = false;
-    });
+
+    setState(() => _isSigningUp = false);
 
     if (response) {
       showToast(message: "User is Successfully created");
       Get.off(() => const HomePage());
     } else {
-      showToast(message: 'some error happned');
+      showToast(message: 'Terjadi kesalahan saat membuat akun');
     }
   }
 }
