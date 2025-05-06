@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_topup_voucher_game_online/pages/change_password_screen%20.dart';
+import 'package:flutter_topup_voucher_game_online/pages/profil_screen.dart';
 import 'package:flutter_topup_voucher_game_online/pages/report_problem_screen.dart';
 import 'package:flutter_topup_voucher_game_online/providers/account_provider.dart';
 import 'package:flutter_topup_voucher_game_online/providers/auth_provider.dart';
 import 'package:flutter_topup_voucher_game_online/toast.dart';
 import 'package:flutter_topup_voucher_game_online/pages/auth/login_screen.dart';
+import 'package:flutter_topup_voucher_game_online/widgets/build_avatar.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+class SettingScreen extends StatelessWidget {
+  const SettingScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -28,11 +31,7 @@ class ProfileScreen extends StatelessWidget {
               Center(
                 child: Column(
                   children: [
-                    const Icon(
-                      Icons.account_circle,
-                      size: 100,
-                      color: Colors.grey,
-                    ),
+                    buildAvatar(user.avatar?.imageUrl?.toString()),
                     const SizedBox(height: 12),
                     Text(
                       "Halo, ${user.username ?? 'Pengguna'}",
@@ -60,14 +59,14 @@ class ProfileScreen extends StatelessWidget {
                 leading: const Icon(Icons.person),
                 title: const Text("Profil Saya"),
                 onTap: () {
-                  // TODO: navigasi ke halaman profil
+                  Get.to(ProfileScreen());
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.lock),
                 title: const Text("Ganti Password"),
                 onTap: () {
-                  // TODO: navigasi ke halaman ubah password
+                  Get.to(ChangePasswordScreen());
                 },
               ),
               const SizedBox(height: 20),

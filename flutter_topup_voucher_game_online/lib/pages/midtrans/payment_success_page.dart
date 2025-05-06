@@ -36,7 +36,7 @@ class PaymentSuccessPage extends StatelessWidget {
                 const Divider(height: 30),
                 _buildRow("Order ID", orderId),
                 _buildRow("Status", "Sukses"),
-                _buildRow("Tanggal", _formatDate(DateTime.now())),
+                _buildRow("Tanggal", _formatDate(DateTime.now().toLocal())),
                 const Divider(height: 30),
                 _buildRow("Total Pembayaran", formatter(amount), isBold: true),
                 const SizedBox(height: 20),

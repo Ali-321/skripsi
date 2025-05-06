@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_topup_voucher_game_online/pages/home_screen.dart';
 import 'package:flutter_topup_voucher_game_online/pages/transaction_history_page.dart';
-import 'package:flutter_topup_voucher_game_online/pages/profile_screen.dart';
+import 'package:flutter_topup_voucher_game_online/pages/setting_screen.dart';
 import 'package:flutter_topup_voucher_game_online/pages/auth/login_screen.dart';
 import 'package:flutter_topup_voucher_game_online/providers/account_provider.dart';
 import 'package:flutter_topup_voucher_game_online/providers/auth_provider.dart';
@@ -105,7 +105,7 @@ class _HomePageState extends State<HomePage> {
   final List<Widget> screens = [
     const HomeScreen(),
     const TransactionHistoryPage(),
-    const ProfileScreen(),
+    const SettingScreen(),
   ];
 
   @override
@@ -122,7 +122,10 @@ class _HomePageState extends State<HomePage> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.history), label: 'History'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Settings',
+          ),
         ],
       ),
     );

@@ -11,6 +11,8 @@ import 'package:flutter_topup_voucher_game_online/models/transaction.dart';
 import 'package:flutter_topup_voucher_game_online/models/user.dart';
 import 'package:http/http.dart' as http;
 
+import '../models/avatar.dart';
+
 class ApiService {
   final String baseUrl = dotenv.env['BASE_URL'] ?? "";
 
@@ -52,7 +54,16 @@ class ApiService {
     if (response.statusCode == 200) {
       final data = LoginResponse.fromJson(jsonDecode(response.body));
 
-      updateUser(email, username, phone, data.user!.id!, data.token!);
+      updateUser(
+        email,
+        username,
+        phone,
+        '',
+        '',
+        data.user!.id!,
+        1,
+        data.token!,
+      );
 
       return data;
     } else {
@@ -60,24 +71,52 @@ class ApiService {
     }
   }
 
+  Future<List<Avatar>> fetchAvatar(String token) async {
+    final response = await http.get(
+      Uri.parse("$baseUrl/avatars"),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body)['data'];
+      return Avatar.fromJsonList(data);
+    } else {
+      return Avatar(id: 0, name: 'null', imageUrl: 'null').toString()
+          as List<Avatar>;
+    }
+  }
+
   Future<User> updateUser(
-    String email,
-    String username,
-    String phone,
-    int userId,
-    String token,
+    String? email,
+    String? username,
+    String? phone,
+    String? firstName,
+    String? lastName,
+    int? userId,
+    int? avatarId,
+    String? token,
   ) async {
     final response = await http.put(
       Uri.parse("$baseUrl/users/$userId"),
       headers: {
         "Content-Type": "application/json",
-        "Authorization": "Bearer<$token>",
+        "Authorization": "Bearer $token",
       },
-      body: jsonEncode({"username": username, "email": email, "phone": phone}),
+      body: jsonEncode({
+        "username": username,
+        "email": email,
+        "phone": phone,
+        'first_name': firstName,
+        'last_name': lastName,
+        'avatar': avatarId,
+      }),
     );
 
     if (response.statusCode == 200) {
-      return User.fromJson(jsonDecode(response.body));
+      return User.fromJsonLogin(jsonDecode(response.body));
     } else {
       throw Exception("Login gagal: ${response.body}");
     }
@@ -86,7 +125,7 @@ class ApiService {
   //ambil data user dengan token
   Future<User> fetchUserData(String token) async {
     final response = await http.get(
-      Uri.parse("$baseUrl/users/me"),
+      Uri.parse("$baseUrl/users/me?populate=avatar"),
       headers: {"Authorization": "Bearer $token"},
     );
     if (response.statusCode == 200) {
@@ -98,9 +137,30 @@ class ApiService {
     }
   }
 
+  Future<bool> changePassword(String? token, User? user) async {
+    final response = await http.post(
+      Uri.parse("$baseUrl/auth/change-password"),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+      body: jsonEncode({
+        "currentPassword": user?.currentPassword,
+        "password": user?.newPassword,
+        "passwordConfirmation": user?.passwordConfirmation,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   Future<LoginResponse> loginUser(String email, String password) async {
     final response = await http.post(
-      Uri.parse("$baseUrl/auth/local"),
+      Uri.parse("$baseUrl/auth/local?populate=avatars"),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({"identifier": email, "password": password}),
     );

@@ -21,8 +21,10 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     fetchGame();
+    fetcAvatar();
     Future.microtask(_loadAccounts);
     Future.microtask(_loadHistoryTransaction);
+    Future.microtask(_loadUserDataAvatar);
   }
 
   @override
@@ -105,5 +107,17 @@ class _HomeScreenState extends State<HomeScreen> {
     await context.read<TransactionProvider>().fetchTransactionsWithPayments(
       userId,
     );
+  }
+
+  void _loadUserDataAvatar() async {
+    if (!mounted) return;
+    await context.read<AuthProvider>().fetchUserData();
+  }
+
+  Future<void> fetcAvatar() async {
+    final provider = Provider.of<AuthProvider>(context, listen: false);
+    await provider.fetchAvatar();
+    if (!mounted) return;
+    setState(() {});
   }
 }

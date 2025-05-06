@@ -1,4 +1,3 @@
-
 import 'package:flutter_topup_voucher_game_online/models/user.dart';
 
 class LoginResponse {
@@ -10,7 +9,7 @@ class LoginResponse {
   factory LoginResponse.fromJson(Map<String, dynamic> json) {
     return LoginResponse(
       token: json['jwt'] ?? "null",
-      user: User.fromJson(json['user']),
+      user: User.fromJsonLogin(json['user']),
     );
   }
 }
