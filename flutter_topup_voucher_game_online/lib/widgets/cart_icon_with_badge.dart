@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_topup_voucher_game_online/pages/cart_screen.dart';
+import 'package:flutter_topup_voucher_game_online/pages/cart_page.dart';
 import 'package:get/get.dart';
 
 import 'package:provider/provider.dart';
@@ -18,7 +18,7 @@ class CartIconWithBadge extends StatelessWidget {
         IconButton(
           icon: const Icon(Icons.shopping_cart),
           onPressed: () {
-            Get.to(CartScreen());
+            Get.to(CartPage());
           },
         ),
         if (cartItemCount > 0)

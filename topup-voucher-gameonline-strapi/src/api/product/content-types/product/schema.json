@@ -33,12 +33,6 @@
       "target": "api::category-product.category-product",
       "inversedBy": "products"
     },
-    "transaction": {
-      "type": "relation",
-      "relation": "manyToOne",
-      "target": "api::transaction.transaction",
-      "inversedBy": "products"
-    },
     "transaction_products": {
       "type": "relation",
       "relation": "oneToMany",

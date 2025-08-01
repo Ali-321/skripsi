@@ -1,0 +1,40 @@
+{
+  "kind": "collectionType",
+  "collectionName": "account_games",
+  "info": {
+    "singularName": "account-game",
+    "pluralName": "account-games",
+    "displayName": "User Game Id Account",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "user_game_id": {
+      "type": "string"
+    },
+    "server_game_id": {
+      "type": "string"
+    },
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "account_games"
+    },
+    "transactions": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::transaction.transaction",
+      "mappedBy": "account_games"
+    },
+    "game": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::game.game",
+      "inversedBy": "account_games"
+    }
+  }
+}

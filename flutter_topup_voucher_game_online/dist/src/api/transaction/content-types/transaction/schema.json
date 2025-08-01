@@ -1,0 +1,37 @@
+{
+    "kind": "collectionType",
+    "collectionName": "transactions",
+    "info": {
+        "singularName": "transaction",
+        "pluralName": "transactions",
+        "displayName": "transaction",
+        "description": ""
+    },
+    "options": {
+        "draftAndPublish": false
+    },
+    "pluginOptions": {},
+    "attributes": {
+        "transaction_date": {
+            "type": "datetime"
+        },
+        "payment": {
+            "type": "relation",
+            "relation": "oneToOne",
+            "target": "api::payment.payment",
+            "inversedBy": "transaction"
+        },
+        "transaction_products": {
+            "type": "relation",
+            "relation": "oneToMany",
+            "target": "api::transaction-product.transaction-product",
+            "mappedBy": "transaction"
+        },
+        "account_games": {
+            "type": "relation",
+            "relation": "manyToMany",
+            "target": "api::account-game.account-game",
+            "inversedBy": "transactions"
+        }
+    }
+}

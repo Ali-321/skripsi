@@ -1,5 +1,4 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
 class FormContainerWidget extends StatefulWidget {
@@ -15,19 +14,20 @@ class FormContainerWidget extends StatefulWidget {
   final ValueChanged<String>? onFieldSubmitted;
   final TextInputType? inputType;
 
-  const FormContainerWidget(
-      {super.key,
-      this.controller,
-      this.fieldKey,
-      this.isPasswordField,
-      this.hintText,
-      this.labelText,
-      this.helperText,
-      this.onSaved,
-      this.validator,
-      this.onFieldSubmitted,
-      this.inputType,
-      this.icon});
+  const FormContainerWidget({
+    super.key,
+    this.controller,
+    this.fieldKey,
+    this.isPasswordField,
+    this.hintText,
+    this.labelText,
+    this.helperText,
+    this.onSaved,
+    this.validator,
+    this.onFieldSubmitted,
+    this.inputType,
+    this.icon,
+  });
 
   @override
   State<FormContainerWidget> createState() => _FormContainerWidgetState();
@@ -37,8 +37,7 @@ class _FormContainerWidgetState extends State<FormContainerWidget> {
   bool _obscureText = true;
 
   double getWidth() {
-    FlutterView view = PlatformDispatcher
-        .instance.views.first; // untuk mendapatkan info nilai view layar
+    FlutterView view = PlatformDispatcher.instance.views.first;
     double physicalWidth = view.physicalSize.width;
     double devicePixelRatio = view.devicePixelRatio;
     return physicalWidth / devicePixelRatio;
@@ -49,11 +48,12 @@ class _FormContainerWidgetState extends State<FormContainerWidget> {
     return Container(
       width: getWidth() / 2 * 1.9,
       decoration: BoxDecoration(
-        color: Colors.white54,
+        color: const Color(0xFF2A2A40), // ✅ Background gelap yang enak dilihat
         borderRadius: BorderRadius.circular(10),
       ),
       child: TextFormField(
-        style: const TextStyle(color: Colors.black),
+        style: const TextStyle(color: Colors.white), // ✅ Teks putih
+        cursorColor: Colors.white, // ✅ Kursor putih
         controller: widget.controller,
         keyboardType: widget.inputType,
         key: widget.fieldKey,
@@ -62,27 +62,32 @@ class _FormContainerWidgetState extends State<FormContainerWidget> {
         validator: widget.validator,
         onFieldSubmitted: widget.onFieldSubmitted,
         decoration: InputDecoration(
-            border: InputBorder.none,
-            filled: true,
-            hintText: widget.hintText,
-            labelText: widget.labelText,
-            icon: widget.icon,
-            hintStyle: const TextStyle(color: Colors.black45),
-            suffix: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _obscureText = !_obscureText;
-                });
-              },
-              child: widget.isPasswordField == true
-                  ? Icon(
+          border: InputBorder.none,
+          filled: true,
+          fillColor:
+              Colors
+                  .transparent, // ❗Ditransparankan karena sudah dibungkus container
+          hintText: widget.hintText,
+          labelText: widget.labelText,
+          labelStyle: const TextStyle(color: Colors.white70), // ✅ Label cerah
+          hintStyle: const TextStyle(color: Colors.white54), // ✅ Hint cerah
+          icon: widget.icon,
+          suffix:
+              widget.isPasswordField == true
+                  ? GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _obscureText = !_obscureText;
+                      });
+                    },
+                    child: Icon(
                       _obscureText ? Icons.visibility_off : Icons.visibility,
-                      color:
-                          _obscureText == false ? Colors.indigo : Colors.black,
-                      size: 17,
-                    )
-                  : const Text(''),
-            )),
+                      color: Colors.white70, // ✅ Ikon juga putih terang
+                      size: 20,
+                    ),
+                  )
+                  : null,
+        ),
       ),
     );
   }

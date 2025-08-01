@@ -1,0 +1,34 @@
+{
+    "kind": "collectionType",
+    "collectionName": "transaction_products",
+    "info": {
+        "singularName": "transaction-product",
+        "pluralName": "transaction-products",
+        "displayName": "Cart",
+        "description": ""
+    },
+    "options": {
+        "draftAndPublish": false
+    },
+    "pluginOptions": {},
+    "attributes": {
+        "quantity": {
+            "type": "decimal"
+        },
+        "transaction": {
+            "type": "relation",
+            "relation": "manyToOne",
+            "target": "api::transaction.transaction",
+            "inversedBy": "transaction_products"
+        },
+        "product": {
+            "type": "relation",
+            "relation": "manyToOne",
+            "target": "api::product.product",
+            "inversedBy": "transaction_products"
+        },
+        "product_prices": {
+            "type": "decimal"
+        }
+    }
+}

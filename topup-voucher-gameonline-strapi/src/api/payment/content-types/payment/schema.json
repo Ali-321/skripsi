@@ -27,12 +27,6 @@
     "payment_date": {
       "type": "datetime"
     },
-    "transaction": {
-      "type": "relation",
-      "relation": "oneToOne",
-      "target": "api::transaction.transaction",
-      "mappedBy": "payment"
-    },
     "payment_histories": {
       "type": "relation",
       "relation": "oneToMany",
@@ -45,6 +39,12 @@
     "order_id": {
       "type": "string",
       "unique": true
+    },
+    "transaction": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::transaction.transaction",
+      "mappedBy": "payment"
     }
   }
 }

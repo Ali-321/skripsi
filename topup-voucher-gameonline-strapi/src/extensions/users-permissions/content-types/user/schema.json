@@ -69,12 +69,6 @@
       "type": "string",
       "required": false
     },
-    "transactions": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::transaction.transaction",
-      "mappedBy": "user"
-    },
     "first_name": {
       "type": "string",
       "required": false
@@ -82,6 +76,24 @@
     "last_name": {
       "type": "string",
       "required": false
+    },
+    "account_games": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::account-game.account-game",
+      "mappedBy": "user"
+    },
+    "reports": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::report.report",
+      "mappedBy": "user"
+    },
+    "avatar": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::avatar.avatar",
+      "inversedBy": "users"
     }
   }
 }

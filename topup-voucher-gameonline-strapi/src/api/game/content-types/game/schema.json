@@ -23,6 +23,12 @@
       "relation": "oneToMany",
       "target": "api::category-product.category-product",
       "mappedBy": "game"
+    },
+    "account_games": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::account-game.account-game",
+      "mappedBy": "game"
     }
   }
 }

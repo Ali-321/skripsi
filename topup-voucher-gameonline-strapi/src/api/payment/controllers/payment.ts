@@ -2,12 +2,11 @@
  * payment controller
  */
 
-import { factories } from '@strapi/strapi'
-
-export default factories.createCoreController('api::payment.payment');
+import { factories } from '@strapi/strapi';
 const crypto = require('crypto');
 
-module.exports = {
+export default factories.createCoreController('api::payment.payment', ({ strapi }) => ({
+
     async midtransCallback(ctx) {
         try {
             // 🛠 Validasi Data dari Midtrans
@@ -15,39 +14,49 @@ module.exports = {
                 return ctx.badRequest('Empty request body');
             }
 
-            const { order_id, transaction_status, fraud_status, gross_amount, signature_key, payment_type, transaction_time } = ctx.request.body;
+            const {
+                order_id,
+                transaction_status,
+                status_code,
+                gross_amount,
+                signature_key,
+                payment_type,
+                transaction_time,
+            } = ctx.request.body;
 
-            // 🔒 Pastikan Server Key Diambil dari ENV
-            const serverKey = process.env.MIDTRANS_SERVER_KEY;
+            // 🔒 Ambil Server Key dari ENV
+            const serverKey = process.env.MIDTRANS_SERVER_KEY.trim();
 
-            // 📝 Status Code Midtrans berdasarkan transaction_status
-            let statusCode;
-            if (transaction_status === 'settlement') {
-                statusCode = '200'; // Sukses
-            } else if (transaction_status === 'pending') {
-                statusCode = '201'; // Menunggu pembayaran
-            } else {
-                statusCode = '400'; // Gagal, cancel, expired
-            }
+            // 🧼 Format gross_amount menjadi angka bulat string
+            const formattedGrossAmount = gross_amount;
 
-            // 🔒 Perbaiki Signature Key Sesuai Format Midtrans
+            // 🔐 Validasi Signature dari Midtrans
             const expectedSignature = crypto
                 .createHash('sha512')
-                .update(order_id + statusCode + gross_amount + serverKey)
+                .update(order_id +
+                    status_code +
+                    gross_amount +
+                    serverKey)
                 .digest('hex');
 
-            console.log(`🔹 Expected Signature: ${expectedSignature}`);
-            console.log(`🔹 Received Signature: ${signature_key}`);
+            console.log('🧾 Signature Debug:', {
+                order_id,
+                status_code,
+                gross_amount,
+                formattedGrossAmount,
+                expectedSignature,
+                received: signature_key,
+            });
 
             if (signature_key !== expectedSignature) {
-                strapi.log.warn("⚠️ Invalid signature key received:", signature_key);
+                strapi.log.warn('⚠️ Invalid signature key received:', signature_key);
                 return ctx.badRequest('Invalid signature key');
             }
 
             // 🔍 Cari Payment berdasarkan order_id
             const payment = await strapi.db.query('api::payment.payment').findOne({
                 where: { order_id },
-                select: ['id', 'payment_status']
+                select: ['id', 'payment_status'],
             });
 
             if (!payment) {
@@ -55,62 +64,92 @@ module.exports = {
                 return ctx.notFound('Payment not found');
             }
 
-            // 🔍 Simpan Status Sebelumnya
             const previousStatus = payment.payment_status;
 
-            // 📝 Menentukan Status Pembayaran Sesuai Midtrans
+            // 📝 Tentukan status baru dari Midtrans
             let newStatus;
             switch (transaction_status) {
                 case 'pending':
                     newStatus = 'Pending';
                     break;
                 case 'settlement':
-                case 'capture': // Kartu kredit sukses
+                case 'capture':
                     newStatus = 'Success';
                     break;
+                case 'failure':
                 case 'cancel':
                 case 'expire':
                 case 'deny':
                     newStatus = 'Failed';
                     break;
                 case 'refund':
-                case 'partial_refund': // Jika hanya sebagian yang dikembalikan
+                case 'partial_refund':
                     newStatus = 'Refunded';
                     break;
                 default:
                     newStatus = 'Unknown';
             }
 
-            // ✅ Update Status & Payment Method
+            // ✅ Update status pembayaran
             await strapi.db.query('api::payment.payment').update({
                 where: { id: payment.id },
                 data: {
                     payment_status: newStatus,
                     payment_date: transaction_time,
-                    payment_method: payment_type // Langsung diisi dengan nilai dari Midtrans
+                    payment_method: payment_type,
                 },
             });
 
-            // 📝 Catat perubahan status ke Payment History
+            // 📝 Catat riwayat perubahan status
             if (previousStatus !== newStatus) {
                 await strapi.db.query('api::payment-history.payment-history').create({
                     data: {
                         payment: payment.id,
-                        previous_status: previousStatus, // Status sebelum diubah
-                        new_status: newStatus, // Status baru
-                        change_at: new Date(), // Timestamp perubahan
+                        previous_status: previousStatus,
+                        new_status: newStatus,
+                        change_at: new Date(),
                     },
                 });
             }
 
+            console.log(
+                `✅ Payment updated: ${order_id} | ${previousStatus} → ${newStatus} | Method: ${payment_type} → ${transaction_status}`
+            );
 
-            strapi.log.info(`✅ Payment updated: ${order_id} | ${previousStatus} → ${newStatus} | Payment Method: ${payment_type}`);
+            return ctx.send({
+                success: true,
+                message: `Payment status updated from ${previousStatus} to ${newStatus}`,
+            });
 
-            // ✅ Beri Respons Sukses ke Midtrans
-            return ctx.send({ success: true, message: `Payment status updated from ${previousStatus} to ${newStatus}, payment method set to ${payment_type}` });
         } catch (error) {
             strapi.log.error('🔴 Midtrans Callback Error:', error);
             return ctx.internalServerError('Failed to process Midtrans callback');
         }
     },
-};
+
+    async findByTransactionId(ctx) {
+        try {
+            const { transactionId } = ctx.params;
+
+            if (!transactionId) {
+                return ctx.badRequest('transactionId diperlukan');
+            }
+
+            const payment = await strapi.db.query('api::payment.payment').findOne({
+                where: { transaction: transactionId },
+                select: ['order_id', 'amount', 'payment_status'],
+            });
+
+            if (!payment) {
+                return ctx.notFound('Data payment tidak ditemukan');
+            }
+
+            return ctx.send(payment);
+
+        } catch (error) {
+            strapi.log.error('❌ Error get payment by transaction:', error);
+            return ctx.internalServerError('Terjadi kesalahan saat mengambil payment');
+        }
+    }
+
+}));

@@ -4,7 +4,7 @@
   "info": {
     "singularName": "transaction-product",
     "pluralName": "transaction-products",
-    "displayName": "transaction_product",
+    "displayName": "Cart",
     "description": ""
   },
   "options": {

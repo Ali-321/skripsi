@@ -1,0 +1,22 @@
+{
+    "kind": "collectionType",
+    "collectionName": "delete_requests",
+    "info": {
+        "singularName": "delete-request",
+        "pluralName": "delete-requests",
+        "displayName": "delete-request",
+        "description": ""
+    },
+    "options": {
+        "draftAndPublish": true
+    },
+    "pluginOptions": {},
+    "attributes": {
+        "targetTable": {
+            "type": "string"
+        },
+        "targetDocumentId": {
+            "type": "string"
+        }
+    }
+}

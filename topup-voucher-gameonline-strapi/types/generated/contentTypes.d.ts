@@ -369,12 +369,84 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiAccountGameAccountGame extends Struct.CollectionTypeSchema {
+  collectionName: 'account_games';
+  info: {
+    description: '';
+    displayName: 'User Game Id Account';
+    pluralName: 'account-games';
+    singularName: 'account-game';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    game: Schema.Attribute.Relation<'manyToOne', 'api::game.game'>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::account-game.account-game'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    server_game_id: Schema.Attribute.String;
+    transactions: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::transaction.transaction'
+    >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    user_game_id: Schema.Attribute.String;
+  };
+}
+
+export interface ApiAvatarAvatar extends Struct.CollectionTypeSchema {
+  collectionName: 'avatars';
+  info: {
+    displayName: 'Avatar';
+    pluralName: 'avatars';
+    singularName: 'avatar';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    imageUrl: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::avatar.avatar'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    users: Schema.Attribute.Relation<
+      'oneToMany',
+      'plugin::users-permissions.user'
+    >;
+  };
+}
+
 export interface ApiCategoryProductCategoryProduct
   extends Struct.CollectionTypeSchema {
   collectionName: 'category_products';
   info: {
     description: '';
-    displayName: 'category_product';
+    displayName: 'Product Category Games';
     pluralName: 'category-products';
     singularName: 'category-product';
   };
@@ -403,6 +475,37 @@ export interface ApiCategoryProductCategoryProduct
   };
 }
 
+export interface ApiDeleteRequestDeleteRequest
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'delete_requests';
+  info: {
+    description: '';
+    displayName: 'delete-request';
+    pluralName: 'delete-requests';
+    singularName: 'delete-request';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::delete-request.delete-request'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    targetDocumentId: Schema.Attribute.String;
+    targetTable: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiGameGame extends Struct.CollectionTypeSchema {
   collectionName: 'games';
   info: {
@@ -415,6 +518,10 @@ export interface ApiGameGame extends Struct.CollectionTypeSchema {
     draftAndPublish: false;
   };
   attributes: {
+    account_games: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::account-game.account-game'
+    >;
     category_products: Schema.Attribute.Relation<
       'oneToMany',
       'api::category-product.category-product'
@@ -546,10 +653,6 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
     product_note: Schema.Attribute.Text;
     product_price: Schema.Attribute.Decimal;
     publishedAt: Schema.Attribute.DateTime;
-    transaction: Schema.Attribute.Relation<
-      'manyToOne',
-      'api::transaction.transaction'
-    >;
     transaction_products: Schema.Attribute.Relation<
       'oneToMany',
       'api::transaction-product.transaction-product'
@@ -583,16 +686,18 @@ export interface ApiReportReport extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
+    report_date: Schema.Attribute.DateTime;
     report_status: Schema.Attribute.Enumeration<
       ['Pending', 'Resolved', 'Rejected']
     >;
-    transaction: Schema.Attribute.Relation<
-      'manyToOne',
-      'api::transaction.transaction'
-    >;
+    subject: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
   };
 }
 
@@ -601,7 +706,7 @@ export interface ApiTransactionProductTransactionProduct
   collectionName: 'transaction_products';
   info: {
     description: '';
-    displayName: 'transaction_product';
+    displayName: 'Cart';
     pluralName: 'transaction-products';
     singularName: 'transaction-product';
   };
@@ -644,6 +749,10 @@ export interface ApiTransactionTransaction extends Struct.CollectionTypeSchema {
     draftAndPublish: false;
   };
   attributes: {
+    account_games: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::account-game.account-game'
+    >;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -654,9 +763,7 @@ export interface ApiTransactionTransaction extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     payment: Schema.Attribute.Relation<'oneToOne', 'api::payment.payment'>;
-    products: Schema.Attribute.Relation<'oneToMany', 'api::product.product'>;
     publishedAt: Schema.Attribute.DateTime;
-    reports: Schema.Attribute.Relation<'oneToMany', 'api::report.report'>;
     transaction_date: Schema.Attribute.DateTime;
     transaction_products: Schema.Attribute.Relation<
       'oneToMany',
@@ -665,10 +772,6 @@ export interface ApiTransactionTransaction extends Struct.CollectionTypeSchema {
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    user: Schema.Attribute.Relation<
-      'manyToOne',
-      'plugin::users-permissions.user'
-    >;
   };
 }
 
@@ -1129,6 +1232,11 @@ export interface PluginUsersPermissionsUser
     draftAndPublish: false;
   };
   attributes: {
+    account_games: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::account-game.account-game'
+    >;
+    avatar: Schema.Attribute.Relation<'manyToOne', 'api::avatar.avatar'>;
     blocked: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     confirmationToken: Schema.Attribute.String & Schema.Attribute.Private;
     confirmed: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
@@ -1156,14 +1264,11 @@ export interface PluginUsersPermissionsUser
     phone: Schema.Attribute.String;
     provider: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
+    reports: Schema.Attribute.Relation<'oneToMany', 'api::report.report'>;
     resetPasswordToken: Schema.Attribute.String & Schema.Attribute.Private;
     role: Schema.Attribute.Relation<
       'manyToOne',
       'plugin::users-permissions.role'
-    >;
-    transactions: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::transaction.transaction'
     >;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -1187,7 +1292,10 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
+      'api::account-game.account-game': ApiAccountGameAccountGame;
+      'api::avatar.avatar': ApiAvatarAvatar;
       'api::category-product.category-product': ApiCategoryProductCategoryProduct;
+      'api::delete-request.delete-request': ApiDeleteRequestDeleteRequest;
       'api::game.game': ApiGameGame;
       'api::payment-history.payment-history': ApiPaymentHistoryPaymentHistory;
       'api::payment.payment': ApiPaymentPayment;

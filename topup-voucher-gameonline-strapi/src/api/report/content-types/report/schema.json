@@ -23,10 +23,16 @@
         "Rejected"
       ]
     },
-    "transaction": {
+    "subject": {
+      "type": "string"
+    },
+    "report_date": {
+      "type": "datetime"
+    },
+    "user": {
       "type": "relation",
       "relation": "manyToOne",
-      "target": "api::transaction.transaction",
+      "target": "plugin::users-permissions.user",
       "inversedBy": "reports"
     }
   }

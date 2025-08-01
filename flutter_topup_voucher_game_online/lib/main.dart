@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_topup_voucher_game_online/pages/home_screen.dart';
+import 'package:flutter_topup_voucher_game_online/pages/home_page.dart';
 import 'package:flutter_topup_voucher_game_online/pages/transaction_history_page.dart';
-import 'package:flutter_topup_voucher_game_online/pages/setting_screen.dart';
-import 'package:flutter_topup_voucher_game_online/pages/auth/login_screen.dart';
+import 'package:flutter_topup_voucher_game_online/pages/setting_page.dart';
+
 import 'package:flutter_topup_voucher_game_online/providers/account_provider.dart';
 import 'package:flutter_topup_voucher_game_online/providers/auth_provider.dart';
 import 'package:flutter_topup_voucher_game_online/providers/cart_provider.dart';
@@ -15,6 +15,8 @@ import 'package:flutter_topup_voucher_game_online/providers/transaction_provider
 import 'package:flutter_topup_voucher_game_online/widgets/cart_icon_with_badge.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
+
+import 'pages/auth/login_page.dart';
 
 Future<void> main() async {
   await dotenv.load(fileName: ".env");
@@ -83,8 +85,8 @@ class MyApp extends StatelessWidget {
               listen: false,
             );
             return authProvider.isAutheticated
-                ? const HomePage()
-                : const LoginScreen();
+                ? const DashboardPage()
+                : const LoginPage();
           }
         },
       ),
@@ -92,20 +94,20 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class DashboardPage extends StatefulWidget {
+  const DashboardPage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<DashboardPage> createState() => _DashboardPageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _DashboardPageState extends State<DashboardPage> {
   int currentIndex = 0;
 
   final List<Widget> screens = [
-    const HomeScreen(),
+    const HomePage(),
     const TransactionHistoryPage(),
-    const SettingScreen(),
+    const SettingPage(),
   ];
 
   @override

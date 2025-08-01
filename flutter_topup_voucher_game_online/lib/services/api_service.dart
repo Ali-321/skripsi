@@ -114,7 +114,7 @@ class ApiService {
         'avatar': avatarId,
       }),
     );
-
+  
     if (response.statusCode == 200) {
       return User.fromJsonLogin(jsonDecode(response.body));
     } else {
@@ -168,10 +168,7 @@ class ApiService {
     if (response.statusCode == 200) {
       return LoginResponse.fromJson(jsonDecode(response.body));
     } else {
-      // If the request fails, throw an exception with more details
-      throw Exception(
-        "Login failed: ${response.statusCode} - ${response.body}",
-      );
+      return LoginResponse(token: null, user: null);
     }
   }
 
@@ -318,57 +315,52 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
-  //fetch Transaction
-  Future<List<Transaction>> fetchTransactionsWithPayments({
-    required String token,
-    required int userId,
-  }) async {
-    final transactionUrl =
-        '$baseUrl/transactions?filters[account_games][user][id][\$eq]=$userId&populate[0]=transaction_products.product.category_product.game';
+    //fetch history pembayaran
+    Future<List<Transaction>> fetchTransactionsWithPayments({
+      required String token,
+      required int userId,
+    }) async {
+      final transactionUrl =
+          '$baseUrl/transactions?filters[account_games][user][id][\$eq]=$userId&populate[0]=transaction_products.product.category_product.game';
 
-    print("🔍 Fetching transactions for user: $userId");
-
-    final trxResponse = await http.get(
-      Uri.parse(transactionUrl),
-      headers: {"Authorization": "Bearer $token"},
-    );
-
-    print("📥 Transaction response status: ${trxResponse.statusCode}");
-
-    if (trxResponse.statusCode != 200) {
-      throw Exception(
-        'Failed to fetch transactions: ${trxResponse.statusCode}',
+      final trxResponse = await http.get(
+        Uri.parse(transactionUrl),
+        headers: {"Authorization": "Bearer $token"},
       );
-    }
 
-    final List<dynamic> trxData = jsonDecode(trxResponse.body)['data'];
-    print("📊 Total transactions fetched: ${trxData.length}");
-
-    List<Transaction> transactions = [];
-
-    for (var trx in trxData) {
-      final trxId = trx['id'];
-      Map<String, dynamic>? paymentData;
-
-      print("🔄 Fetching payment for transaction ID: $trxId");
-
-      try {
-        final paymentRes = await http.get(
-          Uri.parse('$baseUrl/payment-by-transaction/$trxId'),
-          headers: {"Authorization": "Bearer $token"},
+      if (trxResponse.statusCode != 200) {
+        throw Exception(
+          'Failed to fetch transactions: ${trxResponse.statusCode}',
         );
+      }
 
-        print(
-          "🔍 Payment response status for trx $trxId: ${paymentRes.statusCode}",
-        );
+      final List<dynamic> trxData = jsonDecode(trxResponse.body)['data'];
 
-        if (paymentRes.statusCode == 200) {
-          paymentData = jsonDecode(paymentRes.body);
-          print("✅ Payment data for trx $trxId: $paymentData");
-        } else {
-          print(
-            "⚠️ Payment fetch failed for trx $trxId. Defaulting to dummy data.",
+      List<Transaction> transactions = [];
+
+      for (var trx in trxData) {
+        final trxId = trx['id'];
+        Map<String, dynamic>? paymentData;
+
+        try {
+          final paymentRes = await http.get(
+            Uri.parse('$baseUrl/payment-by-transaction/$trxId'),
+            headers: {"Authorization": "Bearer $token"},
           );
+
+    
+          if (paymentRes.statusCode == 200) {
+            paymentData = jsonDecode(paymentRes.body);
+          } else {
+
+            paymentData = {
+              'id': 0,
+              'order_id': '-',
+              'amount': 0,
+              'payment_status': 'Pending',
+            };
+          }
+        } catch (e) {
           paymentData = {
             'id': 0,
             'order_id': '-',
@@ -376,29 +368,12 @@ class ApiService {
             'payment_status': 'Pending',
           };
         }
-      } catch (e) {
-        print("❌ Exception while fetching payment for trx \$trxId: \$e");
-        paymentData = {
-          'id': 0,
-          'order_id': '-',
-          'amount': 0,
-          'payment_status': 'Pending',
-        };
-      }
-
-      try {
         final transaction = Transaction.fromJson(trx, paymentData!);
         transactions.add(transaction);
-        print("🟢 Transaction added for trx $trxId");
-      } catch (e) {
-        print("❌ Error parsing transaction for trx $trxId: $e");
+      
       }
+      return transactions;
     }
-
-    print("✅ Total processed transactions: ${transactions.length}");
-
-    return transactions;
-  }
 
   //post report
 

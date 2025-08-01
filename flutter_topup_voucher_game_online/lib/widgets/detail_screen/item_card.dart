@@ -54,7 +54,7 @@ class ItemCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             SizedBox(
-              height: 60,
+              height: 50,
               child: Image.network(
                 product.imageUrl,
                 fit: BoxFit.contain,
@@ -63,7 +63,7 @@ class ItemCard extends StatelessWidget {
                 },
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 5),
             product.bonus == '0' || product.price == 0
                 ? Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -71,7 +71,7 @@ class ItemCard extends StatelessWidget {
                     Text(
                       "${product.name} ",
                       style: const TextStyle(
-                        fontSize: 14,
+                        fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                       ),
@@ -94,7 +94,7 @@ class ItemCard extends StatelessWidget {
                     Text(
                       "${product.name} ${product.currency} + ${product.bonus} bonus",
                       style: const TextStyle(
-                        fontSize: 14,
+                        fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                       ),
