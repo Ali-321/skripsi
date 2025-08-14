@@ -60,4 +60,4 @@ Proyek ini dikembangkan dengan metode **Waterfall** dengan tahapan:
 
 
 ## Demo App on youtube
-https://youtu.be/d-WJ5JCzYO0
+https://youtu.be/QAlbiJqXuQQ
