@@ -70,7 +70,7 @@ settingan midtrans nya masih sandbox jadi untuk pembayarannya menggunakan midtra
 agar lebih mudah saya menyarankan menggunakan metode pembayaran **alfamaret https://simulator.sandbox.midtrans.com/alfamart/index**
 atau visa **https://doc-midtrans.dev.fleava.com/en/technical-reference/sandbox-test**
 
-## Cara Penggunaan APlikasinya 
+## Cara Penggunaan Aplikasinya 
 1) download aplikasi link diatas google drive
 2) install dan buka aplikasinya
 3) lakukan registrasi dan masukan data dummy atau sembarang 
@@ -87,5 +87,5 @@ atau visa **https://doc-midtrans.dev.fleava.com/en/technical-reference/sandbox-t
 13) bukan halaman **alfamaret https://simulator.sandbox.midtrans.com/alfamart/index** masukan kode pembelian
 14) kembali ke aplikasi maka transaksi akan sukses
 15) cek history transaksi
-16) jika masih pending pindah halaman produk lalu kembali lagi
+16) jika masih pending pindah ke halaman home lalu kembali ke halaman sebelumnya
 17) status transaksi berubah menjadi success
